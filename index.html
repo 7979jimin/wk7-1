@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리아이 첫 영어 단어장</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+        body {
+            font-family: 'Jua', sans-serif; /* 아이들에게 친근한 둥근 폰트 */
+            background-color: #FFFDE7;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 화면 전환용 클래스 */
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.5s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            color: #FF7043;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            font-family: 'Jua', sans-serif;
+            font-size: 1.8rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            color: white;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+            transition: all 0.1s;
+        }
+        .btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 rgba(0,0,0,0.15);
+        }
+        
+        .btn-learn { background-color: #64B5F6; box-shadow: 0 8px 0 #1E88E5; }
+        .btn-quiz { background-color: #81C784; box-shadow: 0 8px 0 #43A047; }
+        .btn-home { background-color: #FFB74D; box-shadow: 0 8px 0 #F57C00; font-size: 1.2rem; padding: 10px 20px; margin-top: 20px;}
+        .btn-nav { background-color: #BA68C8; box-shadow: 0 8px 0 #8E24AA; width: 80px; }
+
+        /* 단어 카드 스타일 */
+        .card {
+            background-color: white;
+            border-radius: 40px;
+            padding: 40px 20px;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            cursor: pointer;
+            transition: transform 0.2s;
+            max-width: 300px;
+        }
+        .card:hover { transform: scale(1.05); }
+        
+        .emoji { font-size: 8rem; margin: 0; line-height: 1; }
+        .word-en { font-size: 3rem; color: #333; margin: 15px 0 5px 0; font-family: 'Comic Sans MS', cursive, sans-serif; }
+        .word-ko { font-size: 1.5rem; color: #888; margin: 0; }
+
+        /* 네비게이션 컨테이너 */
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .progress {
+            font-size: 1.5rem;
+            color: #555;
+            min-width: 80px;
+        }
+
+        /* 퀴즈 스타일 */
+        .quiz-title {
+            font-size: 2rem;
+            color: #3949AB;
+            margin-bottom: 10px;
+        }
+        
+        .quiz-target-word {
+            font-size: 3.5rem;
+            color: #D32F2F;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .quiz-options {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .quiz-option {
+            background: white;
+            font-size: 5rem;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .quiz-option:hover { transform: scale(1.1); }
+        
+        /* 정답/오답 피드백 */
+        #feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            display: none;
+            z-index: 1000;
+            pointer-events: none;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0; }
+        }
+
+        /* 스피커 아이콘 */
+        .speaker-icon {
+            font-size: 1.5rem;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 메인 화면 -->
+    <div id="home-screen" class="screen active">
+        <h1>🐻 우리아이 첫<br>영어 단어장 🍎</h1>
+        <button class="btn btn-learn" onclick="switchScreen('learn-screen'); initLearn();">📖 단어 보기</button>
+        <br>
+        <button class="btn btn-quiz" onclick="switchScreen('quiz-screen'); initQuiz();">🎮 퀴즈 놀이</button>
+    </div>
+
+    <!-- 단어 학습 화면 -->
+    <div id="learn-screen" class="screen">
+        <div class="card" onclick="playCurrentWordAudio()">
+            <div id="learn-emoji" class="emoji">🍎</div>
+            <div id="learn-word-en" class="word-en">Apple<span class="speaker-icon">🔊</span></div>
+            <div id="learn-word-ko" class="word-ko">사과</div>
+        </div>
+        
+        <div class="nav-container">
+            <button class="btn btn-nav" onclick="prevWord()">◀</button>
+            <div id="learn-progress" class="progress">1 / 20</div>
+            <button class="btn btn-nav" onclick="nextWord()">▶</button>
+        </div>
+        <button class="btn btn-home" onclick="switchScreen('home-screen')">🏠 홈으로</button>
+    </div>
+
+    <!-- 퀴즈 화면 -->
+    <div id="quiz-screen" class="screen">
+        <div class="quiz-title">그림을 찾아보세요!</div>
+        <div id="quiz-target" class="quiz-target-word" onclick="playQuizWordAudio()">Apple <span class="speaker-icon">🔊</span></div>
+        
+        <div id="quiz-options-container" class="quiz-options">
+            <!-- 자바스크립트로 옵션 버튼들이 생성됩니다 -->
+        </div>
+        
+        <button class="btn btn-home" style="margin-top: 40px;" onclick="switchScreen('home-screen')">🏠 홈으로</button>
+    </div>
+</div>
+
+<!-- 피드백(정답/오답) 표시용 -->
+<div id="feedback"></div>
+
+<script>
+    // 20개의 영어 단어 데이터
+    const wordList = [
+        { en: "Apple", ko: "사과", emoji: "🍎" },
+        { en: "Banana", ko: "바나나", emoji: "🍌" },
+        { en: "Cat", ko: "고양이", emoji: "🐱" },
+        { en: "Dog", ko: "강아지", emoji: "🐶" },
+        { en: "Elephant", ko: "코끼리", emoji: "🐘" },
+        { en: "Fish", ko: "물고기", emoji: "🐟" },
+        { en: "Grape", ko: "포도", emoji: "🍇" },
+        { en: "Hat", ko: "모자", emoji: "🎩" },
+        { en: "Ice cream", ko: "아이스크림", emoji: "🍦" },
+        { en: "Juice", ko: "주스", emoji: "🧃" },
+        { en: "Lion", ko: "사자", emoji: "🦁" },
+        { en: "Monkey", ko: "원숭이", emoji: "🐵" },
+        { en: "Pig", ko: "돼지", emoji: "🐷" },
+        { en: "Rabbit", ko: "토끼", emoji: "🐰" },
+        { en: "Sun", ko: "태양", emoji: "☀️" },
+        { en: "Tiger", ko: "호랑이", emoji: "🐯" },
+        { en: "Train", ko: "기차", emoji: "🚂" },
+        { en: "Umbrella", ko: "우산", emoji: "☂️" },
+        { en: "Watermelon", ko: "수박", emoji: "🍉" },
+        { en: "Zebra", ko: "얼룩말", emoji: "🦓" }
+    ];
+
+    let currentLearnIndex = 0;
+    let currentQuizWord = null;
+
+    // 화면 전환 함수
+    function switchScreen(screenId) {
+        const screens = document.querySelectorAll('.screen');
+        screens.forEach(screen => screen.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // TTS(Text-to-Speech) 읽어주기 함수 (아이들을 위해 조금 천천히 읽기)
+    function speak(text) {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel(); // 진행 중인 음성 취소
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8; // 아이가 듣기 편하게 속도 늦춤
+            utterance.pitch = 1.2; // 약간 높은 톤
+            window.speechSynthesis.speak(utterance);
+        }
+    }
+
+    // ===== 학습(플래시카드) 모드 로직 =====
+    function initLearn() {
+        currentLearnIndex = 0;
+        updateLearnCard();
+    }
+
+    function updateLearnCard() {
+        const word = wordList[currentLearnIndex];
+        document.getElementById('learn-emoji').innerText = word.emoji;
+        document.getElementById('learn-word-en').innerHTML = `${word.en} <span class="speaker-icon">🔊</span>`;
+        document.getElementById('learn-word-ko').innerText = word.ko;
+        document.getElementById('learn-progress').innerText = `${currentLearnIndex + 1} / ${wordList.length}`;
+        
+        // 카드가 넘어갈 때마다 자동으로 단어 읽어주기
+        speak(word.en);
+    }
+
+    function playCurrentWordAudio() {
+        speak(wordList[currentLearnIndex].en);
+    }
+
+    function nextWord() {
+        currentLearnIndex = (currentLearnIndex + 1) % wordList.length;
+        updateLearnCard();
+    }
+
+    function prevWord() {
+        currentLearnIndex = (currentLearnIndex - 1 + wordList.length) % wordList.length;
+        updateLearnCard();
+    }
+
+    // ===== 퀴즈 모드 로직 =====
+    function initQuiz() {
+        generateQuiz();
+    }
+
+    function playQuizWordAudio() {
+        if(currentQuizWord) {
+            speak(currentQuizWord.en);
+        }
+    }
+
+    // 배열 섞기 함수
+    function shuffleArray(array) {
+        const newArr = [...array];
+        for (let i = newArr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+        }
+        return newArr;
+    }
+
+    function generateQuiz() {
+        // 랜덤으로 정답 단어 1개 선택
+        const randomIndex = Math.floor(Math.random() * wordList.length);
+        currentQuizWord = wordList[randomIndex];
+        
+        // 정답을 포함하여 총 3개의 보기 만들기
+        let options = [currentQuizWord];
+        let remainingWords = wordList.filter(w => w.en !== currentQuizWord.en);
+        remainingWords = shuffleArray(remainingWords);
+        
+        options.push(remainingWords[0]);
+        options.push(remainingWords[1]);
+        
+        // 보기 순서 섞기
+        options = shuffleArray(options);
+
+        // 화면 업데이트
+        document.getElementById('quiz-target').innerHTML = `${currentQuizWord.en} <span class="speaker-icon">🔊</span>`;
+        speak(currentQuizWord.en); // 문제 나올 때 읽어주기
+
+        const optionsContainer = document.getElementById('quiz-options-container');
+        optionsContainer.innerHTML = ''; // 기존 보기 초기화
+
+        options.forEach(opt => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'quiz-option';
+            optionDiv.innerText = opt.emoji;
+            optionDiv.onclick = () => checkAnswer(opt.en === currentQuizWord.en);
+            optionsContainer.appendChild(optionDiv);
+        });
+    }
+
+    function checkAnswer(isCorrect) {
+        const feedbackEl = document.getElementById('feedback');
+        
+        if (isCorrect) {
+            // 정답일 때 피드백 (환호 효과)
+            feedbackEl.innerText = "⭕🎉";
+            speak("Good job!");
+            feedbackEl.style.display = 'block';
+            
+            // 1.5초 후 새로운 문제 출제
+            setTimeout(() => {
+                feedbackEl.style.display = 'none';
+                generateQuiz();
+            }, 1500);
+        } else {
+            // 오답일 때 피드백
+            feedbackEl.innerText = "❌💧";
+            speak("Try again!");
+            feedbackEl.style.display = 'block';
+            
+            setTimeout(() => {
+                feedbackEl.style.display = 'none';
+            }, 1000);
+        }
+    }
+</script>
+
+</body>
+</html>
